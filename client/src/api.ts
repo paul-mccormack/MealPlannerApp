@@ -30,6 +30,8 @@ export const api = {
   listRecipes: () => request<Recipe[]>("/recipes"),
   createRecipe: (input: RecipeInput) =>
     request<Recipe>("/recipes", { method: "POST", body: JSON.stringify(input) }),
+  updateRecipe: (id: number, input: RecipeInput) =>
+    request<Recipe>(`/recipes/${id}`, { method: "PUT", body: JSON.stringify(input) }),
   deleteRecipe: (id: number) => request<void>(`/recipes/${id}`, { method: "DELETE" }),
 
   listIngredients: () => request<Ingredient[]>("/ingredients"),
