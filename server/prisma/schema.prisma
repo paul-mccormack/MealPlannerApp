@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Ingredient {
+  id           Int               @id @default(autoincrement())
+  name         String            @unique
+  defaultUnit  String?
+  recipeLinks  RecipeIngredient[]
+}
+
+model Recipe {
+  id           Int               @id @default(autoincrement())
+  name         String
+  instructions String?
+  servings     Int?
+  ingredients  RecipeIngredient[]
+  planEntries  PlanEntry[]
+}
+
+model RecipeIngredient {
+  id           Int         @id @default(autoincrement())
+  recipe       Recipe      @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipeId     Int
+  ingredient   Ingredient  @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  ingredientId Int
+  quantity     Float
+  unit         String
+
+  @@unique([recipeId, ingredientId])
+}
+
+// weekday: 0 = Monday .. 6 = Sunday. One standing dinner plan, reset each week
+// via POST /api/plan/reset rather than tracked per calendar date.
+model PlanEntry {
+  id       Int    @id @default(autoincrement())
+  weekday  Int    @unique
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipeId Int
+}
