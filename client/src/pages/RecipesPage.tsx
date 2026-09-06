@@ -18,12 +18,37 @@ export function RecipesPage() {
   const [ingredientRows, setIngredientRows] = useState<RecipeIngredientInput[]>([{ ...emptyIngredientRow }]);
   const [error, setError] = useState<string | null>(null);
   const [invalidRows, setInvalidRows] = useState<number[]>([]);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   function refresh() {
     api.listRecipes().then(setRecipes).catch((e) => setError(e.message));
   }
 
   useEffect(refresh, []);
+
+  function resetForm() {
+    setEditingId(null);
+    setName("");
+    setServings("");
+    setInstructions("");
+    setIngredientRows([{ ...emptyIngredientRow }]);
+    setInvalidRows([]);
+    setError(null);
+  }
+
+  function startEdit(recipe: Recipe) {
+    setEditingId(recipe.id);
+    setName(recipe.name);
+    setServings(recipe.servings ?? "");
+    setInstructions(recipe.instructions ?? "");
+    setIngredientRows(
+      recipe.ingredients.length
+        ? recipe.ingredients.map((ri) => ({ name: ri.ingredient.name, quantity: ri.quantity, unit: ri.unit }))
+        : [{ ...emptyIngredientRow }]
+    );
+    setInvalidRows([]);
+    setError(null);
+  }
 
   function updateRow(index: number, patch: Partial<RecipeIngredientInput>) {
     setIngredientRows((rows) => {
@@ -61,17 +86,19 @@ export function RecipesPage() {
     setInvalidRows([]);
 
     const ingredients = ingredientRows.filter((row) => row.name.trim() && row.unit.trim());
+    const input = {
+      name,
+      servings: servings === "" ? undefined : servings,
+      instructions: instructions || undefined,
+      ingredients,
+    };
     try {
-      await api.createRecipe({
-        name,
-        servings: servings === "" ? undefined : servings,
-        instructions: instructions || undefined,
-        ingredients,
-      });
-      setName("");
-      setServings("");
-      setInstructions("");
-      setIngredientRows([{ ...emptyIngredientRow }]);
+      if (editingId !== null) {
+        await api.updateRecipe(editingId, input);
+      } else {
+        await api.createRecipe(input);
+      }
+      resetForm();
       refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -80,13 +107,14 @@ export function RecipesPage() {
 
   async function handleDelete(id: number) {
     await api.deleteRecipe(id);
+    if (editingId === id) resetForm();
     refresh();
   }
 
   return (
     <div className="page">
       <section className="card">
-        <h2>Add a recipe</h2>
+        <h2>{editingId !== null ? "Edit recipe" : "Add a recipe"}</h2>
         <form onSubmit={handleSubmit} className="form">
           <label>
             Name
@@ -140,9 +168,16 @@ export function RecipesPage() {
           </button>
 
           {error && <p className="error">{error}</p>}
-          <button type="submit" className="primary">
-            Save recipe
-          </button>
+          <div className="form-actions">
+            <button type="submit" className="primary">
+              {editingId !== null ? "Save changes" : "Save recipe"}
+            </button>
+            {editingId !== null && (
+              <button type="button" onClick={resetForm}>
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
       </section>
 
@@ -154,6 +189,9 @@ export function RecipesPage() {
               <div className="recipe-header">
                 <strong>{recipe.name}</strong>
                 {recipe.servings && <span> · serves {recipe.servings}</span>}
+                <button className="link edit" onClick={() => startEdit(recipe)}>
+                  edit
+                </button>
                 <button className="link" onClick={() => handleDelete(recipe.id)}>
                   delete
                 </button>

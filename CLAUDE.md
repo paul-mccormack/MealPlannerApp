@@ -49,6 +49,15 @@ safety net in case the client-side check is ever bypassed or changed. Fully
 blank rows (used for the "add another ingredient" placeholder) are the only
 ones that get silently ignored on submit.
 
+**Recipes use one form for both create and edit.** `RecipesPage.tsx` has a
+single `editingId` state (`null` = creating); clicking "edit" on a recipe
+populates the same form fields from that recipe and flips the submit
+handler to call `api.updateRecipe` (`PUT /api/recipes/:id`) instead of
+`api.createRecipe` (`POST /api/recipes`). `PUT` fully replaces a recipe's
+ingredients (delete-all-then-recreate in `recipes.ts`), so it's not a
+partial patch — the client always sends the complete ingredient list. The
+same `incompleteRowIndexes` validation applies whether creating or editing.
+
 **In production there is one running process.** The Express server both
 serves the JSON API under `/api/*` and serves the built client's static
 files for every other route (see the catch-all in `server/src/index.ts`).

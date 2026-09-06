@@ -83,6 +83,7 @@ recipesRouter.put("/:id", async (req, res) => {
     servings?: number;
     ingredients?: IngredientInput[];
   };
+  if (!name) return res.status(400).json({ error: "name is required" });
 
   const ingredientsError = validateIngredients(ingredients);
   if (ingredientsError) return res.status(400).json({ error: ingredientsError });
