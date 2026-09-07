@@ -143,3 +143,21 @@ container). Data persists in the `meal-planner-data` named volume mounted at
 starting the server, so schema migrations created in dev
 (`server/prisma/migrations/`) are what gets applied in the container — there
 is no separate "generate migration in prod" step.
+
+## CI/CD and Docker Hub publishing
+
+`.github/workflows/ci.yml` has a second job, `docker-publish`, that builds
+this same `Dockerfile` and pushes it to `docker.io/paulmack1976/meal-planner`.
+It only runs on a `push` to `main` (never on `pull_request` events — it
+shows as skipped there) and only after the `test` job succeeds (`needs: test`).
+Tags pushed: `latest` and the short git SHA of the commit — there's no
+semver/release process yet, so `docker pull paulmack1976/meal-planner:<sha>`
+is the way to reference a specific past build. Requires two repo secrets
+configured manually in GitHub (Settings → Secrets and variables → Actions),
+never present in any file: `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (a
+Docker Hub access token with Read & Write permission, not the account
+password). Deployment stops at the registry push — nothing in CI rolls the
+image out to any host; pulling and running it is a manual step wherever it's
+hosted. The build is single-platform (`linux/amd64`); add a `platforms:` key
+to the `docker/build-push-action` step if an arm64 target (e.g. a Raspberry
+Pi) is ever needed.
