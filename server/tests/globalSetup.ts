@@ -8,9 +8,12 @@ export default function setup() {
   const dataDir = path.join(__dirname, "..", "data");
   fs.mkdirSync(dataDir, { recursive: true });
 
-  execSync("npx prisma migrate deploy", {
-    cwd: path.join(__dirname, ".."),
-    stdio: "inherit",
-    env: { ...process.env, DATABASE_URL: TEST_DATABASE_URL },
-  });
+  const cwd = path.join(__dirname, "..");
+  const env = { ...process.env, DATABASE_URL: TEST_DATABASE_URL };
+
+  // Don't rely on @prisma/client's postinstall hook having generated the
+  // client already (e.g. a fresh `npm ci` checkout in CI) — generate it
+  // explicitly before running migrations.
+  execSync("npx prisma generate", { cwd, stdio: "inherit", env });
+  execSync("npx prisma migrate deploy", { cwd, stdio: "inherit", env });
 }
