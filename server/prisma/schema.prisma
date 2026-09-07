@@ -19,6 +19,7 @@ model Recipe {
   name         String
   instructions String?
   servings     Int?
+  sourceUrl    String?
   ingredients  RecipeIngredient[]
   planEntries  PlanEntry[]
 }

@@ -20,6 +20,7 @@ export interface Recipe {
   name: string;
   instructions: string | null;
   servings: number | null;
+  sourceUrl: string | null;
   ingredients: RecipeIngredient[];
 }
 

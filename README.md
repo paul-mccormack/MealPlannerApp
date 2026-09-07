@@ -4,7 +4,9 @@ A small self-hosted web app for weekly dinner planning: store recipes and
 their ingredients, assign a recipe to each day of the week, and get an
 aggregated shopping list. The plan isn't tied to calendar dates — it's a
 single standing plan you reset with one click when you're ready to plan the
-next week. Recipes can be added, edited, and deleted at any time.
+next week. Recipes can be added, edited, and deleted at any time, and can
+optionally link to the website they came from — when a planned day's recipe
+has a link, a "Go to recipe" button opens it in a new tab.
 
 Each ingredient needs both a name and a unit — the recipe form blocks
 saving (and highlights the row) if one is filled in without the other, and

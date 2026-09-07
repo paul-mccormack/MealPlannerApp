@@ -15,6 +15,7 @@ export function RecipesPage() {
   const [name, setName] = useState("");
   const [servings, setServings] = useState<number | "">("");
   const [instructions, setInstructions] = useState("");
+  const [sourceUrl, setSourceUrl] = useState("");
   const [ingredientRows, setIngredientRows] = useState<RecipeIngredientInput[]>([{ ...emptyIngredientRow }]);
   const [error, setError] = useState<string | null>(null);
   const [invalidRows, setInvalidRows] = useState<number[]>([]);
@@ -31,6 +32,7 @@ export function RecipesPage() {
     setName("");
     setServings("");
     setInstructions("");
+    setSourceUrl("");
     setIngredientRows([{ ...emptyIngredientRow }]);
     setInvalidRows([]);
     setError(null);
@@ -41,6 +43,7 @@ export function RecipesPage() {
     setName(recipe.name);
     setServings(recipe.servings ?? "");
     setInstructions(recipe.instructions ?? "");
+    setSourceUrl(recipe.sourceUrl ?? "");
     setIngredientRows(
       recipe.ingredients.length
         ? recipe.ingredients.map((ri) => ({ name: ri.ingredient.name, quantity: ri.quantity, unit: ri.unit }))
@@ -90,6 +93,7 @@ export function RecipesPage() {
       name,
       servings: servings === "" ? undefined : servings,
       instructions: instructions || undefined,
+      sourceUrl: sourceUrl.trim() || undefined,
       ingredients,
     };
     try {
@@ -132,6 +136,15 @@ export function RecipesPage() {
           <label>
             Instructions
             <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} rows={3} />
+          </label>
+          <label>
+            Recipe link (optional)
+            <input
+              type="url"
+              placeholder="https://..."
+              value={sourceUrl}
+              onChange={(e) => setSourceUrl(e.target.value)}
+            />
           </label>
 
           <h3>Ingredients</h3>
@@ -204,6 +217,13 @@ export function RecipesPage() {
                 ))}
               </ul>
               {recipe.instructions && <p className="instructions">{recipe.instructions}</p>}
+              {recipe.sourceUrl && (
+                <p className="instructions">
+                  <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer">
+                    View original recipe
+                  </a>
+                </p>
+              )}
             </li>
           ))}
         </ul>

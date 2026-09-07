@@ -9,6 +9,17 @@ type IngredientInput = {
   unit: string;
 };
 
+function validateSourceUrl(sourceUrl: string | undefined): string | null {
+  if (!sourceUrl?.trim()) return null;
+  try {
+    const url = new URL(sourceUrl);
+    if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("bad protocol");
+  } catch {
+    return "Recipe link must be a valid http(s) URL";
+  }
+  return null;
+}
+
 function validateIngredients(ingredients: IngredientInput[]): string | null {
   for (const ing of ingredients) {
     if (!ing.name?.trim() || !ing.unit?.trim()) {
@@ -52,13 +63,16 @@ recipesRouter.get("/:id", async (req, res) => {
 });
 
 recipesRouter.post("/", async (req, res) => {
-  const { name, instructions, servings, ingredients = [] } = req.body as {
+  const { name, instructions, servings, sourceUrl, ingredients = [] } = req.body as {
     name: string;
     instructions?: string;
     servings?: number;
+    sourceUrl?: string;
     ingredients?: IngredientInput[];
   };
   if (!name) return res.status(400).json({ error: "name is required" });
+  const sourceUrlError = validateSourceUrl(sourceUrl);
+  if (sourceUrlError) return res.status(400).json({ error: sourceUrlError });
   const ingredientsError = validateIngredients(ingredients);
   if (ingredientsError) return res.status(400).json({ error: ingredientsError });
 
@@ -68,6 +82,7 @@ recipesRouter.post("/", async (req, res) => {
       name,
       instructions,
       servings,
+      sourceUrl: sourceUrl?.trim() || undefined,
       ingredients: { create: links },
     },
     include: { ingredients: { include: { ingredient: true } } },
@@ -77,13 +92,16 @@ recipesRouter.post("/", async (req, res) => {
 
 recipesRouter.put("/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const { name, instructions, servings, ingredients = [] } = req.body as {
+  const { name, instructions, servings, sourceUrl, ingredients = [] } = req.body as {
     name: string;
     instructions?: string;
     servings?: number;
+    sourceUrl?: string;
     ingredients?: IngredientInput[];
   };
   if (!name) return res.status(400).json({ error: "name is required" });
+  const sourceUrlError = validateSourceUrl(sourceUrl);
+  if (sourceUrlError) return res.status(400).json({ error: sourceUrlError });
 
   const ingredientsError = validateIngredients(ingredients);
   if (ingredientsError) return res.status(400).json({ error: ingredientsError });
@@ -96,6 +114,7 @@ recipesRouter.put("/:id", async (req, res) => {
       name,
       instructions,
       servings,
+      sourceUrl: sourceUrl?.trim() || null,
       ingredients: { create: links },
     },
     include: { ingredients: { include: { ingredient: true } } },
