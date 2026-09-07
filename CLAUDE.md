@@ -90,6 +90,25 @@ manually via `docker compose up --build` (see below) until the
 `docker-publish` CI job below actually ran `docker build` for the first
 time and caught the original per-workspace `npm ci` bug.
 
+**Second Dockerfile gotcha — npm doesn't fully hoist workspace deps:**
+after fixing the above, the container still crash-looped on startup
+(`npx prisma migrate deploy` failing, falling back to a broken on-the-fly
+`npx` install of `prisma`) because `express`, `cors`, `@prisma/client`, and
+the `prisma` CLI were missing from the image entirely. Root cause: npm's
+workspace hoisting put those specific packages in `server/node_modules`
+instead of the shared root `node_modules` (client and server's dependency
+trees conflict enough that npm didn't hoist everything) — confirmed by
+running a container from the `deps`/`server-build` stage and diffing
+`node_modules` vs `server/node_modules`. The final stage's
+`COPY --from=server-build /app/node_modules ./node_modules` only ever
+grabbed the root-hoisted half. Fix: a second
+`COPY --from=server-build /app/server/node_modules ./node_modules`
+right after it, merging server's un-hoisted packages into the same
+destination. If dependencies are ever added/changed such that hoisting
+shifts again, re-check with `docker run --rm <image> sh -c "ls node_modules/.bin"`
+that `prisma` (and whatever else the server needs at runtime) actually
+ends up in the final image — don't assume the root copy alone is enough.
+
 **Prisma SQLite path gotcha:** `DATABASE_URL` in `server/.env` is resolved
 relative to `server/prisma/schema.prisma`, not the process cwd. It's set to
 `file:../data/mealplanner.db` so the actual db file lands at
