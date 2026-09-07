@@ -21,6 +21,7 @@ ENV PORT=3000
 ENV DATABASE_URL="file:../data/mealplanner.db"
 
 COPY --from=server-build /app/node_modules ./node_modules
+COPY --from=server-build /app/server/node_modules ./node_modules
 COPY --from=server-build /app/server/package.json ./package.json
 COPY --from=server-build /app/server/dist ./dist
 COPY --from=server-build /app/server/prisma ./prisma
