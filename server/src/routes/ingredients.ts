@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 
 export const ingredientsRouter = Router();
@@ -22,6 +23,13 @@ ingredientsRouter.post("/", async (req, res) => {
 });
 
 ingredientsRouter.delete("/:id", async (req, res) => {
-  await prisma.ingredient.delete({ where: { id: Number(req.params.id) } });
-  res.status(204).end();
+  try {
+    await prisma.ingredient.delete({ where: { id: Number(req.params.id) } });
+    res.status(204).end();
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
+      return res.status(404).json({ error: "ingredient not found" });
+    }
+    throw err;
+  }
 });
