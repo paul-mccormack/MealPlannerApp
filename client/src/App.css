@@ -169,7 +169,11 @@ button.danger {
 .plan-table {
   border-collapse: collapse;
   width: 100%;
-  max-width: 420px;
+  max-width: 560px;
+}
+
+.plan-table td:last-child {
+  white-space: nowrap;
 }
 
 .plan-table th,

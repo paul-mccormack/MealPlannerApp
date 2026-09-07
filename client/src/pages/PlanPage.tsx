@@ -35,6 +35,10 @@ export function PlanPage() {
     refreshPlan();
   }
 
+  function goToRecipe(url: string) {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   return (
     <div className="page">
       <section className="card">
@@ -63,6 +67,13 @@ export function PlanPage() {
                         </option>
                       ))}
                     </select>
+                  </td>
+                  <td>
+                    {entry?.recipe.sourceUrl && (
+                      <button type="button" onClick={() => goToRecipe(entry.recipe.sourceUrl!)}>
+                        Go to recipe
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

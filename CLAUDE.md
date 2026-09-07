@@ -58,6 +58,15 @@ ingredients (delete-all-then-recreate in `recipes.ts`), so it's not a
 partial patch — the client always sends the complete ingredient list. The
 same `incompleteRowIndexes` validation applies whether creating or editing.
 
+**Recipes optionally carry a `sourceUrl`** (nullable, validated server-side in
+`recipes.ts` via `validateSourceUrl` to be a well-formed `http(s)` URL when
+present — not required). `PlanPage.tsx` shows a "Go to recipe" button next
+to a day's select only when that day's assigned recipe has a `sourceUrl`;
+clicking it does `window.open(url, "_blank", "noopener,noreferrer")`. Since
+`PUT /api/recipes/:id` replaces the whole recipe, clearing the link field in
+the edit form sends `sourceUrl: null` explicitly (not just omitting the
+key) so the update actually clears it rather than leaving the old value.
+
 **In production there is one running process.** The Express server both
 serves the JSON API under `/api/*` and serves the built client's static
 files for every other route (see the catch-all in `server/src/index.ts`).

@@ -23,6 +23,7 @@ export interface RecipeInput {
   name: string;
   instructions?: string;
   servings?: number;
+  sourceUrl?: string;
   ingredients: RecipeIngredientInput[];
 }
 
