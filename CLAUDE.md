@@ -111,7 +111,25 @@ npm run prisma:migrate -w server -- --name x  # new migration after editing sche
 npx prisma studio            # (from server/) browse/edit the sqlite db directly
 ```
 
-There is no test suite yet.
+## Tests
+
+```
+npm test                    # both workspaces: server (unit + integration), then client (component)
+npm run test --workspace server   # vitest run — validator unit tests + supertest integration tests
+npm run test --workspace client   # vitest run — jsdom + React Testing Library component tests
+npm run test:watch -w server      # (or -w client) watch mode during development
+```
+
+Server tests run against a dedicated SQLite database (`server/.env.test` →
+`server/data/test.db`, gitignored, separate from the dev db), never the
+`prisma migrate reset` CLI command — a `globalSetup` (`server/tests/globalSetup.ts`)
+runs `prisma migrate deploy` (idempotent, safe to rerun) once per test run,
+and each test starts clean via ordered `deleteMany()` calls in
+`server/tests/testSetup.ts`. Client tests mock `client/src/api.ts` at the
+module boundary (`vi.mock("../api")`) rather than mocking `fetch` or hitting
+a real server. Both workspaces' `*.test.ts(x)` files are excluded from their
+respective production `tsc`/`vite build` output. CI (`.github/workflows/ci.yml`)
+runs the same commands on every PR and push to `main`.
 
 ## Docker
 
