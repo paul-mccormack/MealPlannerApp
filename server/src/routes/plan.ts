@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 
 export const planRouter = Router();
@@ -32,6 +33,13 @@ planRouter.delete("/reset", async (_req, res) => {
 });
 
 planRouter.delete("/:id", async (req, res) => {
-  await prisma.planEntry.delete({ where: { id: Number(req.params.id) } });
-  res.status(204).end();
+  try {
+    await prisma.planEntry.delete({ where: { id: Number(req.params.id) } });
+    res.status(204).end();
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
+      return res.status(404).json({ error: "plan entry not found" });
+    }
+    throw err;
+  }
 });
