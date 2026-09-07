@@ -3,13 +3,13 @@ import { prisma } from "../db";
 
 export const recipesRouter = Router();
 
-type IngredientInput = {
+export type IngredientInput = {
   name: string;
   quantity: number;
   unit: string;
 };
 
-function validateSourceUrl(sourceUrl: string | undefined): string | null {
+export function validateSourceUrl(sourceUrl: string | undefined): string | null {
   if (!sourceUrl?.trim()) return null;
   try {
     const url = new URL(sourceUrl);
@@ -20,7 +20,7 @@ function validateSourceUrl(sourceUrl: string | undefined): string | null {
   return null;
 }
 
-function validateIngredients(ingredients: IngredientInput[]): string | null {
+export function validateIngredients(ingredients: IngredientInput[]): string | null {
   for (const ing of ingredients) {
     if (!ing.name?.trim() || !ing.unit?.trim()) {
       return "Each ingredient needs both a name and a unit";
