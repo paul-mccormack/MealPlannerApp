@@ -73,6 +73,23 @@ files for every other route (see the catch-all in `server/src/index.ts`).
 The Dockerfile builds `client/` and `server/` in separate stages and copies
 the client's `dist/` into the server image as `public/`.
 
+**Dockerfile install gotcha:** this is an npm workspaces repo with a single
+root `package-lock.json` (no per-workspace lockfiles), so `npm ci` only
+works from the repo root, not from inside `client/` or `server/` alone —
+running it in an isolated `WORKDIR` with just that workspace's `package.json`
+copied in fails with "can only install with an existing package-lock.json".
+The Dockerfile's `deps` stage installs once at `/app` (copying root
+`package.json`/`package-lock.json` plus both workspaces' `package.json`
+files first, for layer caching), and `client-build`/`server-build` both
+build from that shared `deps` image via `npm run build -w <workspace>`. This
+means the final image's `node_modules` (copied from `server-build`, which
+inherits from `deps`) includes every workspace's dependencies, not just the
+server's — a known, accepted size tradeoff for a personal project rather
+than a separate prod-only install stage. This was only ever build-tested
+manually via `docker compose up --build` (see below) until the
+`docker-publish` CI job below actually ran `docker build` for the first
+time and caught the original per-workspace `npm ci` bug.
+
 **Prisma SQLite path gotcha:** `DATABASE_URL` in `server/.env` is resolved
 relative to `server/prisma/schema.prisma`, not the process cwd. It's set to
 `file:../data/mealplanner.db` so the actual db file lands at
