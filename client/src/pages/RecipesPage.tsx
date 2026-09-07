@@ -4,7 +4,7 @@ import type { Recipe } from "../types";
 
 const emptyIngredientRow: RecipeIngredientInput = { name: "", quantity: 1, unit: "" };
 
-function incompleteRowIndexes(rows: RecipeIngredientInput[]): number[] {
+export function incompleteRowIndexes(rows: RecipeIngredientInput[]): number[] {
   return rows
     .map((_, i) => i)
     .filter((i) => Boolean(rows[i].name.trim()) !== Boolean(rows[i].unit.trim()));
