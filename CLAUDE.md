@@ -182,18 +182,33 @@ is no separate "generate migration in prod" step.
 
 ## CI/CD and Docker Hub publishing
 
-`.github/workflows/ci.yml` has a second job, `docker-publish`, that builds
-this same `Dockerfile` and pushes it to `docker.io/paulmack1976/meal-planner`.
-It only runs on a `push` to `main` (never on `pull_request` events — it
-shows as skipped there) and only after the `test` job succeeds (`needs: test`).
-Tags pushed: `latest` and the short git SHA of the commit — there's no
-semver/release process yet, so `docker pull paulmack1976/meal-planner:<sha>`
-is the way to reference a specific past build. Requires two repo secrets
-configured manually in GitHub (Settings → Secrets and variables → Actions),
-never present in any file: `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (a
-Docker Hub access token with Read & Write permission, not the account
-password). Deployment stops at the registry push — nothing in CI rolls the
-image out to any host; pulling and running it is a manual step wherever it's
-hosted. The build is single-platform (`linux/amd64`); add a `platforms:` key
-to the `docker/build-push-action` step if an arm64 target (e.g. a Raspberry
-Pi) is ever needed.
+`.github/workflows/ci.yml` has a `docker-publish` job that builds the
+`Dockerfile` and pushes it to `docker.io/paulmack1976/meal-planner`. It runs
+on a `push` to `main` (never on `pull_request` events — it shows as skipped
+there) and only after the `test` job succeeds (`needs: test`). Tags pushed:
+`latest` and the short git SHA of the commit — there's no semver/release
+process yet, so `docker pull paulmack1976/meal-planner:<sha>` is the way to
+reference a specific past build.
+
+A separate `docker-publish-pr` job publishes a **preview image** for an open
+pull request, so a PR's exact code can be pulled and tested before it's
+merged. It runs only on `pull_request` events, gated by a `changes` job that
+diffs the PR against its base branch and sets `outputs.app` — the build is
+skipped (both jobs no-op) when nothing under `client/`, `server/`,
+`Dockerfile`, `docker-compose*.yml`, or the root `package.json`/
+`package-lock.json` changed (e.g. a docs-only PR). It pushes exactly one tag,
+`paulmack1976/meal-planner:pr-<number>`, overwritten on every push to that
+PR — it never touches `latest` or a bare sha tag, both of which stay
+reserved for the `docker-publish` job above. There's no cleanup step, so a
+merged/closed PR's `pr-<number>` tag is left on Docker Hub until manually
+deleted.
+
+Both publish jobs require the same two repo secrets, configured manually in
+GitHub (Settings → Secrets and variables → Actions), never present in any
+file: `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (a Docker Hub access token
+with Read & Write permission, not the account password). Deployment stops at
+the registry push — nothing in CI rolls the image out to any host; pulling
+and running it is a manual step wherever it's hosted. The build is
+single-platform (`linux/amd64`); add a `platforms:` key to the
+`docker/build-push-action` step in both jobs if an arm64 target (e.g. a
+Raspberry Pi) is ever needed.
