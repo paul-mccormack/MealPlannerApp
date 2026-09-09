@@ -1,0 +1,11 @@
+services:
+  app:
+    image: paulmack1976/meal-planner:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - meal-planner-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  meal-planner-data:
