@@ -11,6 +11,8 @@ vi.mock("../api", () => ({
     createRecipe: vi.fn(),
     updateRecipe: vi.fn(),
     deleteRecipe: vi.fn(),
+    downloadBackup: vi.fn(),
+    restoreBackup: vi.fn(),
   },
 }));
 
@@ -82,5 +84,64 @@ describe("RecipesPage", () => {
       })
     );
     await waitFor(() => expect(screen.getByLabelText("Name")).toHaveValue(""));
+  });
+});
+
+describe("RecipesPage backup and restore", () => {
+  beforeEach(() => {
+    vi.mocked(api.listRecipes).mockResolvedValue([] as Recipe[]);
+  });
+
+  it("downloads a backup file when the download button is clicked", async () => {
+    const blob = new Blob(["{}"], { type: "application/json" });
+    vi.mocked(api.downloadBackup).mockResolvedValue(blob);
+    const createObjectURL = vi.fn().mockReturnValue("blob:mock-url");
+    const revokeObjectURL = vi.fn();
+    (URL as unknown as { createObjectURL: typeof createObjectURL }).createObjectURL = createObjectURL;
+    (URL as unknown as { revokeObjectURL: typeof revokeObjectURL }).revokeObjectURL = revokeObjectURL;
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+
+    const user = userEvent.setup();
+    render(<RecipesPage />);
+    await user.click(screen.getByRole("button", { name: "Download backup" }));
+
+    await waitFor(() => expect(api.downloadBackup).toHaveBeenCalledTimes(1));
+    expect(createObjectURL).toHaveBeenCalledWith(blob);
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
+
+    clickSpy.mockRestore();
+  });
+
+  it("does not restore when the confirmation is dismissed", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    const user = userEvent.setup();
+    render(<RecipesPage />);
+
+    const file = new File([JSON.stringify({ version: 1, recipes: [] })], "backup.json", {
+      type: "application/json",
+    });
+    await user.upload(screen.getByTestId("backup-file-input"), file);
+
+    expect(api.restoreBackup).not.toHaveBeenCalled();
+  });
+
+  it("restores from a chosen backup file after confirmation", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.mocked(api.restoreBackup).mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<RecipesPage />);
+
+    const backup = {
+      version: 1,
+      exportedAt: "2026-01-01T00:00:00.000Z",
+      ingredients: [],
+      recipes: [{ name: "Pancakes", ingredients: [] }],
+    };
+    const file = new File([JSON.stringify(backup)], "backup.json", { type: "application/json" });
+    await user.upload(screen.getByTestId("backup-file-input"), file);
+
+    await waitFor(() => expect(api.restoreBackup).toHaveBeenCalledTimes(1));
+    expect(api.restoreBackup).toHaveBeenCalledWith(backup);
   });
 });

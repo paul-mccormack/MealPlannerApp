@@ -5,6 +5,7 @@ import { recipesRouter } from "./routes/recipes";
 import { ingredientsRouter } from "./routes/ingredients";
 import { planRouter } from "./routes/plan";
 import { shoppingListRouter } from "./routes/shoppingList";
+import { backupRouter } from "./routes/backup";
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use("/api/recipes", recipesRouter);
 app.use("/api/ingredients", ingredientsRouter);
 app.use("/api/plan", planRouter);
 app.use("/api/shopping-list", shoppingListRouter);
+app.use("/api/backup", backupRouter);
 
 const clientDist = path.join(__dirname, "..", "public");
 app.use(express.static(clientDist));
