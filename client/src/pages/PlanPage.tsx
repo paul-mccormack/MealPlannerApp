@@ -93,7 +93,7 @@ export function PlanPage() {
 
       <footer className="app-footer">
         <p>
-          Made by Paul McCormack. This project is open source —{" "}
+          Created by Paul McCormack and Claude Code. This project is open source —{" "}
           <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
             view it on GitHub
           </a>
