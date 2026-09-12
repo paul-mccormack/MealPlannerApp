@@ -17,6 +17,13 @@
   margin: 0;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .tabs {
   display: flex;
   gap: 4px;
@@ -24,16 +31,29 @@
 
 .tabs button {
   padding: 8px 14px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border-control);
   background: transparent;
+  color: var(--color-text);
   border-radius: 6px;
   cursor: pointer;
 }
 
 .tabs button.active {
-  background: #2b6cb0;
-  color: white;
-  border-color: #2b6cb0;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+.theme-toggle {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-control);
+  border-radius: 6px;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .page {
@@ -42,8 +62,14 @@
   gap: 24px;
 }
 
+.intro p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
 .card {
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 16px 20px;
 }
@@ -66,6 +92,9 @@
 .form select {
   padding: 6px 8px;
   font-size: 15px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-control);
 }
 
 .ingredient-row {
@@ -75,18 +104,18 @@
 }
 
 .ingredient-row.invalid input {
-  border-color: #c53030;
-  outline-color: #c53030;
+  border-color: var(--color-danger);
+  outline-color: var(--color-danger);
 }
 
 .error {
-  color: #c53030;
+  color: var(--color-danger);
 }
 
 button.primary {
   align-self: flex-start;
-  background: #2b6cb0;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -96,13 +125,13 @@ button.primary {
 button.link {
   background: none;
   border: none;
-  color: #c53030;
+  color: var(--color-danger);
   cursor: pointer;
   margin-left: 8px;
 }
 
 button.link.edit {
-  color: #2b6cb0;
+  color: var(--color-primary);
 }
 
 .form-actions {
@@ -113,15 +142,16 @@ button.link.edit {
 
 .form-actions button:not(.primary) {
   padding: 8px 16px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border-control);
   border-radius: 6px;
   background: transparent;
+  color: var(--color-text);
   cursor: pointer;
 }
 
 button.danger {
-  background: #c53030;
-  color: white;
+  background: var(--color-danger);
+  color: var(--color-on-danger);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -157,12 +187,12 @@ button.danger {
   margin: 4px 0;
   padding-left: 20px;
   font-size: 14px;
-  color: #555;
+  color: var(--color-text-muted);
 }
 
 .instructions {
   font-size: 14px;
-  color: #555;
+  color: var(--color-text-muted);
   white-space: pre-wrap;
 }
 
@@ -178,7 +208,7 @@ button.danger {
 
 .plan-table th,
 .plan-table td {
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   padding: 8px;
   font-size: 14px;
 }
@@ -190,10 +220,14 @@ button.danger {
 
 .plan-table select {
   width: 100%;
+  padding: 4px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-control);
 }
 
 .muted {
-  color: #888;
+  color: var(--color-text-subtle);
   font-weight: normal;
   font-size: 13px;
 }
@@ -204,4 +238,97 @@ button.danger {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.app-footer {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+  font-size: 13px;
+  color: var(--color-text-subtle);
+}
+
+.app-footer a {
+  color: var(--color-primary);
+}
+
+@media (max-width: 640px) {
+  .app {
+    padding: 12px 16px 32px;
+  }
+
+  .app-header h1 {
+    font-size: 22px;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .tabs button,
+  .theme-toggle {
+    flex: 1 1 auto;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .plan-table,
+  .plan-table tbody,
+  .plan-table tr,
+  .plan-table th,
+  .plan-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .plan-table tr {
+    margin-bottom: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 8px;
+  }
+
+  .plan-table th,
+  .plan-table td {
+    border: none;
+    padding: 4px 0;
+  }
+
+  .plan-table th {
+    width: auto;
+  }
+
+  .plan-table select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .ingredient-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ingredient-row input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .form-actions {
+    flex-wrap: wrap;
+  }
+
+  .form-actions button {
+    flex: 1 1 auto;
+    min-height: 44px;
+  }
+
+  button.primary,
+  button.danger,
+  .form-actions button:not(.primary) {
+    min-height: 44px;
+  }
+
+  .recipe-header {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
 }
