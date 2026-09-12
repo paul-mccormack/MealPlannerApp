@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
+import { GITHUB_REPO_URL, LINKEDIN_PROFILE_URL } from "../constants";
 import { DAY_LABELS, type PlanEntry, type Recipe } from "../types";
 
 export function PlanPage() {
@@ -41,6 +42,14 @@ export function PlanPage() {
 
   return (
     <div className="page">
+      <section className="intro">
+        <p>
+          Meal Planner helps you plan dinners for the week. Add recipes on the Recipes tab, assign one to each day
+          below, and check Shopping List for a combined list of everything you need to buy. When you're ready to
+          plan a new week, use "Reset plan" to clear the board and start again.
+        </p>
+      </section>
+
       <section className="card">
         <div className="plan-header">
           <h2>Dinner plan</h2>
@@ -81,6 +90,20 @@ export function PlanPage() {
           </tbody>
         </table>
       </section>
+
+      <footer className="app-footer">
+        <p>
+          Created by Paul McCormack and Claude Code. This project is open source —{" "}
+          <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
+            view it on GitHub
+          </a>
+          {" · "}
+          <a href={LINKEDIN_PROFILE_URL} target="_blank" rel="noopener noreferrer">
+            connect on LinkedIn
+          </a>
+          .
+        </p>
+      </footer>
     </div>
   );
 }
