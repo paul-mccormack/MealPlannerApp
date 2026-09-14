@@ -13,6 +13,7 @@ vi.mock("../api", () => ({
     deleteRecipe: vi.fn(),
     downloadBackup: vi.fn(),
     restoreBackup: vi.fn(),
+    listIngredients: vi.fn(),
   },
 }));
 
@@ -48,6 +49,7 @@ describe("incompleteRowIndexes", () => {
 describe("RecipesPage", () => {
   beforeEach(() => {
     vi.mocked(api.listRecipes).mockResolvedValue([] as Recipe[]);
+    vi.mocked(api.listIngredients).mockResolvedValue([]);
   });
 
   it("blocks submission and highlights the row when an ingredient is incomplete", async () => {
@@ -87,9 +89,75 @@ describe("RecipesPage", () => {
   });
 });
 
+describe("RecipesPage ingredient autocomplete", () => {
+  beforeEach(() => {
+    vi.mocked(api.listIngredients).mockResolvedValue([
+      { id: 1, name: "Cheddar", defaultUnit: "g" },
+      { id: 2, name: "Chicken breast", defaultUnit: "g" },
+    ]);
+    vi.mocked(api.listRecipes).mockResolvedValue([
+      {
+        id: 1,
+        name: "Existing",
+        instructions: null,
+        servings: null,
+        sourceUrl: null,
+        ingredients: [
+          {
+            id: 1,
+            recipeId: 1,
+            ingredientId: 2,
+            quantity: 1,
+            unit: "piece",
+            ingredient: { id: 2, name: "Chicken breast", defaultUnit: null },
+          },
+        ],
+      },
+    ] as Recipe[]);
+  });
+
+  it("shows a matching ingredient-name suggestion while typing and fills the row on click", async () => {
+    const user = userEvent.setup();
+    render(<RecipesPage />);
+
+    const nameInput = await screen.findByPlaceholderText("Ingredient name");
+    await user.type(nameInput, "Ched");
+
+    const option = await screen.findByText("Cheddar");
+    await user.click(option);
+
+    expect(nameInput).toHaveValue("Cheddar");
+  });
+
+  it("shows a matching unit suggestion derived from existing recipes and fills the row on click", async () => {
+    const user = userEvent.setup();
+    render(<RecipesPage />);
+
+    await screen.findByText(/Existing/);
+
+    const unitInput = screen.getByPlaceholderText("Unit (g, ml, cups...)");
+    await user.type(unitInput, "piece");
+
+    const option = await screen.findByText("piece");
+    await user.click(option);
+
+    expect(unitInput).toHaveValue("piece");
+  });
+
+  it("does not show a dropdown when editing an existing recipe", async () => {
+    const user = userEvent.setup();
+    render(<RecipesPage />);
+
+    await user.click(await screen.findByText("edit"));
+
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
+});
+
 describe("RecipesPage backup and restore", () => {
   beforeEach(() => {
     vi.mocked(api.listRecipes).mockResolvedValue([] as Recipe[]);
+    vi.mocked(api.listIngredients).mockResolvedValue([]);
   });
 
   it("downloads a backup file when the download button is clicked", async () => {

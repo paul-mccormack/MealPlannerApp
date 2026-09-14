@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api, type BackupPayload, type RecipeIngredientInput } from "../api";
 import type { Recipe } from "../types";
+import { AutocompleteInput } from "../components/AutocompleteInput";
 
 const emptyIngredientRow: RecipeIngredientInput = { name: "", quantity: 1, unit: "" };
 
@@ -20,10 +21,32 @@ export function RecipesPage() {
   const [error, setError] = useState<string | null>(null);
   const [invalidRows, setInvalidRows] = useState<number[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [ingredientNames, setIngredientNames] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const unitOptions = useMemo(() => {
+    const byLowerCase = new Map<string, string>();
+    for (const recipe of recipes) {
+      for (const ri of recipe.ingredients) {
+        const trimmed = ri.unit.trim();
+        if (!trimmed) continue;
+        const key = trimmed.toLowerCase();
+        if (!byLowerCase.has(key)) byLowerCase.set(key, trimmed);
+      }
+    }
+    return Array.from(byLowerCase.values()).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+  }, [recipes]);
+
+  function refreshIngredientNames() {
+    api
+      .listIngredients()
+      .then((list) => setIngredientNames(list.map((i) => i.name)))
+      .catch(() => {});
+  }
 
   function refresh() {
     api.listRecipes().then(setRecipes).catch((e) => setError(e.message));
+    refreshIngredientNames();
   }
 
   useEffect(refresh, []);
@@ -216,10 +239,11 @@ export function RecipesPage() {
             const invalid = invalidRows.includes(i);
             return (
               <div className={invalid ? "ingredient-row invalid" : "ingredient-row"} key={i}>
-                <input
+                <AutocompleteInput
                   placeholder="Ingredient name"
                   value={row.name}
-                  onChange={(e) => updateRow(i, { name: e.target.value })}
+                  onChange={(value) => updateRow(i, { name: value })}
+                  options={ingredientNames}
                 />
                 <input
                   type="number"
@@ -229,10 +253,11 @@ export function RecipesPage() {
                   value={row.quantity}
                   onChange={(e) => updateRow(i, { quantity: Number(e.target.value) })}
                 />
-                <input
+                <AutocompleteInput
                   placeholder="Unit (g, ml, cups...)"
                   value={row.unit}
-                  onChange={(e) => updateRow(i, { unit: e.target.value })}
+                  onChange={(value) => updateRow(i, { unit: value })}
+                  options={unitOptions}
                 />
                 <button type="button" onClick={() => removeRow(i)} aria-label="Remove ingredient">
                   &times;
